@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"time"
 )
 
 type Move struct {
@@ -52,6 +53,11 @@ func (t *ConnectGame) Move(args *Move, reply *int) error {
 			break // the piece landed, so stop
 		}
 	}
+
+	// Artificial delay to make the data race easy to trigger:
+	// it widens the gap between the CHECK above and the UPDATE below,
+	// giving other goroutines time to slip past the check.
+	time.Sleep(10 * time.Millisecond)
 
 	// Remember who just moved, so the next move must be the other color.
 	lastColorMoved = args.Color
